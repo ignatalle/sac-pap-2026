@@ -120,7 +120,9 @@ export default function DetalleTarea() {
             </p>
           )}
           <a
-            href={`/redoape.html?page=${(tarea as any).redoape_pagina || 1}&ref=${encodeURIComponent(tarea.actividad || '')}`}
+            href={`https://drive.google.com/file/d/1osjOVV0TZj6vlX2rB98HTv6kOhQcSxLF/preview${(tarea as any).redoape_pagina ? `#page=${(tarea as any).redoape_pagina}` : ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg text-sm font-semibold text-white transition-colors">
             <BookOpen size={16} />
             {(tarea as any).redoape_pagina
@@ -129,7 +131,7 @@ export default function DetalleTarea() {
           </a>
           {(tarea as any).redoape_pagina && (
             <p className="text-xs text-blue-400/60 mt-2 text-center">
-              Abre en la página exacta del procedimiento
+              Abre directo en la página del procedimiento
             </p>
           )}
         </div>
