@@ -1,213 +1,232 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
-import NavBar from '@/components/NavBar'
-import EstadoBadge from '@/components/EstadoBadge'
-import { supabase } from '@/lib/supabase'
-import { calcularEstado, calcularFechas, formatFecha } from '@/lib/utils'
-import type { Tarea, EstadoTarea } from '@/lib/types'
-import { ArrowLeft, Save, BookOpen, Calendar, Clock, User } from 'lucide-react'
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>REDOAPE 2026</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; color: #fff; font-family: system-ui, sans-serif; height: 100dvh; display: flex; flex-direction: column; }
 
-export default function DetalleTarea() {
-  const router = useRouter()
-  const { id } = useParams()
-  const [tarea, setTarea] = useState<Tarea | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [guardado, setGuardado] = useState(false)
-
-  // Campos editables
-  const [pct, setPct] = useState(0)
-  const [fechaInicio, setFechaInicio] = useState('')
-  const [fechaFin, setFechaFin] = useState('')
-  const [notas, setNotas] = useState('')
-  const [diasAuto, setDiasAuto] = useState(10)
-  const [diasPrep, setDiasPrep] = useState(7)
-
-  useEffect(() => {
-    async function load() {
-      const { data: session } = await supabase.auth.getSession()
-      if (!session.session) { router.push('/'); return }
-      const { data } = await supabase.from('tareas_pap').select('*').eq('id', id).single()
-      if (!data) return
-      const t = { ...data, estado: calcularEstado(data) as EstadoTarea }
-      setTarea(t)
-      setPct(t.porcentaje_avance || 0)
-      setFechaInicio(t.fecha_real_inicio || '')
-      setFechaFin(t.fecha_real_finalizacion || '')
-      setNotas(t.observaciones_control || '')
-      setDiasAuto(t.dias_autoimpuestos || 10)
-      setDiasPrep(t.dias_preparacion || 7)
-      setLoading(false)
+    /* Header */
+    #header {
+      background: #0d1b2a;
+      border-bottom: 1px solid #333;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
     }
-    load()
-  }, [id, router])
+    #header-left { display: flex; align-items: center; gap: 10px; }
+    #back-btn {
+      background: #374151;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    #title { font-size: 13px; font-weight: 600; color: #c9a84c; }
+    #subtitle { font-size: 11px; color: #9ca3af; }
 
-  async function guardar() {
-    setSaving(true)
-    await supabase.from('tareas_pap').update({
-      porcentaje_avance: pct,
-      fecha_real_inicio: fechaInicio || null,
-      fecha_real_finalizacion: fechaFin || null,
-      observaciones_control: notas,
-      dias_autoimpuestos: diasAuto,
-      dias_preparacion: diasPrep,
-    }).eq('id', id)
-    setSaving(false)
-    setGuardado(true)
-    setTimeout(() => setGuardado(false), 2000)
+    /* Nav páginas */
+    #nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    #nav button {
+      background: #374151;
+      border: none;
+      color: #fff;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #nav button:disabled { opacity: 0.3; }
+    #page-info { font-size: 12px; color: #9ca3af; white-space: nowrap; }
+
+    /* Canvas container */
+    #canvas-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 8px;
+      gap: 8px;
+    }
+    canvas {
+      max-width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      background: white;
+    }
+
+    /* Loading */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+    }
+    #loading.hidden { display: none; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #374151;
+      border-top-color: #c9a84c;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { color: #9ca3af; font-size: 14px; }
+    #loading small { color: #6b7280; font-size: 12px; }
+
+    /* Página referenciada highlight */
+    #ref-banner {
+      background: #1e3a5f;
+      border: 1px solid #3b82f6;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #93c5fd;
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      display: none;
+    }
+    #ref-banner.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Cargando REDOAPE 2026...</p>
+  <small>Por favor esperá</small>
+</div>
+
+<div id="header">
+  <div id="header-left">
+    <button id="back-btn" onclick="history.back()">← Volver</button>
+    <div>
+      <div id="title">REDOAPE 2026</div>
+      <div id="subtitle">Cargando...</div>
+    </div>
+  </div>
+  <div id="nav">
+    <a id="drive-btn" href="https://drive.google.com/file/d/1osjOVV0TZj6vlX2rB98HTv6kOhQcSxLF/view" target="_blank" style="background:#1a73e8;border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap;">    <button id="prev-btn"#x1F4C4; Drive</a>
+    <button id="prev-btn" onclick="cambiarPagina(-1)" disabled>‹</button>
+    <span id="page-info">— / —</span>
+    <button id="next-btn" onclick="cambiarPagina(1)" disabled>›</button>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <div id="ref-banner"></div>
+  <canvas id="pdf-canvas"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  const PDF_URL = 'https://euxvnxbxgltxahucngqy.supabase.co/storage/v1/object/public/REODAPE/REDOAPE%202026%20-%20MAS%20LIVIANO.pdf';
+
+  // Leer parámetros de URL
+  const params = new URLSearchParams(window.location.search);
+  const paginaInicial = parseInt(params.get('page')) || 1;
+  const apendiceRef = params.get('ref') || '';
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  let pdfDoc = null;
+  let paginaActual = paginaInicial;
+  let renderTask = null;
+
+  // Mostrar referencia si hay
+  if (apendiceRef) {
+    const banner = document.getElementById('ref-banner');
+    banner.textContent = `📌 Procedimiento: ${apendiceRef}`;
+    banner.classList.add('visible');
   }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="text-gray-500 animate-pulse">Cargando tarea...</div>
-    </div>
-  )
-  if (!tarea) return <div className="p-4 text-red-400">Tarea no encontrada</div>
+  async function renderPagina(num) {
+    if (!pdfDoc) return;
+    if (renderTask) { try { renderTask.cancel(); } catch(e){} }
 
-  const fechas = calcularFechas({ ...tarea, dias_autoimpuestos: diasAuto, dias_preparacion: diasPrep })
+    const page = await pdfDoc.getPage(num);
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
 
-  return (
-    <div className="min-h-screen bg-gray-950">
-      <NavBar />
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-6">
+    const dpr = window.devicePixelRatio || 2;
+    const container = document.getElementById('canvas-container');
+    const maxW = container.clientWidth - 16;
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(maxW / viewport.width, 3) * dpr;
+    const vp = page.getViewport({ scale });
 
-        {/* Back */}
-        <Link href="/agenda" className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-sm mb-4 transition-colors">
-          <ArrowLeft size={16} /> Volver a agenda
-        </Link>
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    canvas.style.width = (vp.width / dpr) + 'px';
+    canvas.style.height = (vp.height / dpr) + 'px';
 
-        {/* Header */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <EstadoBadge estado={tarea.estado} />
-            <span className="text-xs text-gray-600">#{tarea.id}</span>
-          </div>
-          <p className="text-xs text-yellow-600 font-medium mb-1">{tarea.direccion}</p>
-          <h1 className="text-base font-bold text-white mb-1">{tarea.actividad}</h1>
-          <p className="text-sm text-gray-300">{tarea.tarea}</p>
-        </div>
+    renderTask = page.render({ canvasContext: ctx, viewport: vp });
+    await renderTask.promise;
 
-        {/* Fechas */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Calendar size={14} /> Línea de tiempo
-          </h2>
-          <div className="space-y-2">
-            {[
-              { label: 'Término PAP', value: tarea.termino_pap_texto, color: 'text-red-400' },
-              { label: 'Límite efectivo', value: formatFecha(tarea.fecha_limite_efectiva), color: 'text-orange-400' },
-              { label: 'Término autoimpuesto', value: formatFecha(fechas.termino_autoimpuesto), color: 'text-yellow-400' },
-              { label: 'Inicio de preparación', value: formatFecha(fechas.inicio_preparacion), color: 'text-green-400' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">{label}</span>
-                <span className={`text-xs font-semibold ${color}`}>{value || '—'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+    document.getElementById('page-info').textContent = `${num} / ${pdfDoc.numPages}`;
+    document.getElementById('subtitle').textContent = `Página ${num} de ${pdfDoc.numPages}`;
+    document.getElementById('prev-btn').disabled = num <= 1;
+    document.getElementById('next-btn').disabled = num >= pdfDoc.numPages;
 
-        {/* REDOAPE */}
-        <div className="bg-gray-900 border border-blue-900 rounded-xl p-4 mb-4">
-          <h2 className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <BookOpen size={14} /> Procedimiento / REDOAPE
-          </h2>
-          {tarea.observaciones && (
-            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed mb-3">
-              {tarea.observaciones}
-            </p>
-          )}
-          <a
-            href={`https://drive.google.com/file/d/1osjOVV0TZj6vlX2rB98HTv6kOhQcSxLF/preview${(tarea as any).redoape_pagina ? `#page=${(tarea as any).redoape_pagina}` : ''}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            <BookOpen size={16} />
-            {(tarea as any).redoape_pagina
-              ? `Ver procedimiento — Pág. ${(tarea as any).redoape_pagina}`
-              : 'Ver REDOAPE 2026'}
-          </a>
-          {(tarea as any).redoape_pagina && (
-            <p className="text-xs text-blue-400/60 mt-2 text-center">
-              Abre directo en la página del procedimiento
-            </p>
-          )}
-        </div>
+    // Scroll al inicio del canvas
+    document.getElementById('canvas-container').scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-        {/* Config días */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Clock size={14} /> Anticipación
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Días autoimpuestos</label>
-              <input type="number" min={0} max={60} value={diasAuto}
-                onChange={e => setDiasAuto(Number(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Días preparación</label>
-              <input type="number" min={0} max={60} value={diasPrep}
-                onChange={e => setDiasPrep(Number(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white" />
-            </div>
-          </div>
-        </div>
+  function cambiarPagina(delta) {
+    const nueva = paginaActual + delta;
+    if (nueva < 1 || nueva > pdfDoc.numPages) return;
+    paginaActual = nueva;
+    renderPagina(paginaActual);
+  }
 
-        {/* Progreso */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <User size={14} /> Seguimiento
-          </h2>
+  // Swipe gesture para móvil
+  let touchStartX = 0;
+  document.getElementById('canvas-container').addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.getElementById('canvas-container').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 60) cambiarPagina(dx < 0 ? 1 : -1);
+  }, { passive: true });
 
-          <div className="mb-3">
-            <label className="block text-xs text-gray-500 mb-2">Avance: {pct}%</label>
-            <input type="range" min={0} max={100} step={5} value={pct}
-              onChange={e => setPct(Number(e.target.value))}
-              className="w-full accent-yellow-500" />
-            <div className="flex gap-1 mt-2">
-              {[0, 25, 50, 75, 100].map(v => (
-                <button key={v} onClick={() => setPct(v)}
-                  className={`flex-1 py-1 rounded text-xs font-medium transition-colors
-                    ${pct === v ? 'bg-yellow-600 text-gray-900' : 'bg-gray-800 text-gray-500 hover:bg-gray-700'}`}>
-                  {v}%
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Inicio real</label>
-              <input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Finalización real</label>
-              <input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Observaciones de control</label>
-            <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={3}
-              placeholder="Notas de seguimiento..."
-              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white resize-none" />
-          </div>
-        </div>
-
-        {/* Guardar */}
-        <button onClick={guardar} disabled={saving}
-          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors
-            ${guardado ? 'bg-green-700 text-white' : 'bg-yellow-600 hover:bg-yellow-500 text-gray-900'}`}>
-          <Save size={16} />
-          {guardado ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar cambios'}
-        </button>
-      </main>
-    </div>
-  )
-}
+  // Cargar PDF
+  pdfjsLib.getDocument({ url: PDF_URL, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true })
+    .promise
+    .then(pdf => {
+      pdfDoc = pdf;
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('prev-btn').disabled = false;
+      document.getElementById('next-btn').disabled = false;
+      renderPagina(paginaInicial);
+    })
+    .catch(err => {
+      document.getElementById('loading').innerHTML = `
+        <p style="color:#ef4444">Error al cargar el documento</p>
+        <small style="color:#9ca3af">${err.message}</small>
+        <button onclick="history.back()" style="margin-top:12px;padding:8px 16px;background:#374151;border:none;color:#fff;border-radius:8px;cursor:pointer">← Volver</button>
+      `;
+    });
+</script>
+</body>
+</html>
