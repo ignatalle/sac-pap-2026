@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ea-verde: #1a3a2a;
+  --ea-azul: #0d1b2a;
+  --ea-dorado: #c9a84c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: #030712;
+  color: #f3f4f6;
+}
+
+/* Barra de progreso */
+.progress-bar {
+  @apply h-2 rounded-full bg-gray-700 overflow-hidden;
+}
+.progress-bar-fill {
+  @apply h-full rounded-full transition-all duration-500;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
