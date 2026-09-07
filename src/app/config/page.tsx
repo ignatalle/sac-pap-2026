@@ -209,7 +209,7 @@ export default function Configuracion() {
             <p>SAC-PAP 2026 v1.0</p>
             <p>PAP 2026 — 264 tareas cargadas</p>
             <p>Dir. Gral. de Personal y Bienestar — EMGE</p>
-            <p>Firmado: GB GUSTAVO WALTER RE</p>
+            <p>Firmado: MY GERVASONI LEONARDO</p>
           </div>
         </div>
       </main>
