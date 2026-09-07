@@ -110,17 +110,28 @@ export default function DetalleTarea() {
         </div>
 
         {/* REDOAPE */}
-        {tarea.observaciones && (
-          <div className="bg-gray-900 border border-blue-900 rounded-xl p-4 mb-4">
-            <h2 className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <BookOpen size={14} /> Procedimiento / REDOAPE
-            </h2>
-            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+        <div className="bg-gray-900 border border-blue-900 rounded-xl p-4 mb-4">
+          <h2 className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <BookOpen size={14} /> Procedimiento / REDOAPE
+          </h2>
+          {tarea.observaciones && (
+            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed mb-3">
               {tarea.observaciones}
             </p>
-            <p className="text-xs text-gray-600 mt-2">Referencia: {tarea.documento || 'REDOAPE'}</p>
-          </div>
-        )}
+          )}
+          <a
+            href="https://euxvnxbxgltxahucngqy.supabase.co/storage/v1/object/public/REODAPE/REDOAPE%202026%20-%20MAS%20LIVIANO.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg text-sm font-semibold text-white transition-colors">
+            <BookOpen size={16} /> Abrir REDOAPE 2026
+          </a>
+          {(tarea.observaciones?.includes('Apen') || tarea.observaciones?.includes('Apéndice')) && (
+            <p className="text-xs text-blue-400/60 mt-2 text-center">
+              ↑ Buscá el Apéndice indicado arriba en el documento
+            </p>
+          )}
+        </div>
 
         {/* Config días */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
