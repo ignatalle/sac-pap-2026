@@ -120,15 +120,18 @@ export default function DetalleTarea() {
             </p>
           )}
           <a
-            href="https://euxvnxbxgltxahucngqy.supabase.co/storage/v1/object/public/REODAPE/REDOAPE%202026%20-%20MAS%20LIVIANO.pdf"
+            href={`https://euxvnxbxgltxahucngqy.supabase.co/storage/v1/object/public/REODAPE/REDOAPE%202026%20-%20MAS%20LIVIANO.pdf${(tarea as any).redoape_pagina ? `#page=${(tarea as any).redoape_pagina}` : ''}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            <BookOpen size={16} /> Abrir REDOAPE 2026
+            <BookOpen size={16} />
+            {(tarea as any).redoape_pagina
+              ? `Abrir REDOAPE — Pág. ${(tarea as any).redoape_pagina}`
+              : 'Abrir REDOAPE 2026'}
           </a>
-          {(tarea.observaciones?.includes('Apen') || tarea.observaciones?.includes('Apéndice')) && (
+          {(tarea as any).redoape_pagina && (
             <p className="text-xs text-blue-400/60 mt-2 text-center">
-              ↑ Buscá el Apéndice indicado arriba en el documento
+              Abre directo en la página del procedimiento
             </p>
           )}
         </div>
