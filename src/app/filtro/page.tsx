@@ -15,14 +15,20 @@ export default function FiltroTareas() {
 
   useEffect(() => {
     async function load() {
-      const { data: session } = await supabase.auth.getSession()
-      if (!session.session) { router.push('/'); return }
-      const { data } = await supabase
-        .from('tareas_pap')
-        .select('id, direccion, actividad, tarea, aplica')
-        .order('id')
-      if (data) setTareas(data as unknown as Tarea[])
-      setLoading(false)
+      try {
+        const { data: session } = await supabase.auth.getSession()
+        if (!session.session) { router.push('/'); return }
+        const { data, error } = await supabase
+          .from('tareas_pap')
+          .select('id, direccion, actividad, tarea, aplica')
+          .order('id')
+        if (error) console.error('Error:', error)
+        if (data) setTareas(data as unknown as Tarea[])
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [router])
