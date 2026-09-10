@@ -26,6 +26,7 @@ export interface Tarea {
   dias_restantes: number | null
   responsable: string
   prioridad: string
+  aplica?: boolean
   // Campos editables (guardados en Supabase)
   fecha_real_inicio?: string | null
   fecha_real_finalizacion?: string | null
