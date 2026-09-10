@@ -24,7 +24,7 @@ function AgendaContent() {
     async function load() {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session) { router.push('/'); return }
-      const { data } = await supabase.from('tareas_pap').select('*').order('id')
+      const { data } = await supabase.from('tareas_pap').select('*').neq('aplica', false).order('id')
       if (!data) return
       const con = data.map(t => ({ ...t, estado: calcularEstado(t) as EstadoTarea }))
       setTodas(con)
