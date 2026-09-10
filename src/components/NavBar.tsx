@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, CalendarDays, List, Settings, LogOut, AlertCircle } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, List, Settings, LogOut, AlertCircle, Filter } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const links = [
@@ -9,6 +9,7 @@ const links = [
   { href: '/hoy', label: 'Hoy', icon: AlertCircle },
   { href: '/agenda', label: 'Agenda', icon: List },
   { href: '/calendario', label: 'Calendario', icon: CalendarDays },
+  { href: '/filtro', label: 'Filtro', icon: Filter },
   { href: '/config', label: 'Config', icon: Settings },
 ]
 
