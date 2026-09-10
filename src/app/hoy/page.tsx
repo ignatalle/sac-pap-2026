@@ -18,7 +18,7 @@ export default function ControlHoy() {
       const { data: session } = await supabase.auth.getSession()
       if (!session.session) { router.push('/'); return }
 
-      const { data } = await supabase.from('tareas_pap').select('*').neq('aplica', false).order('id')
+      const { data } = await supabase.from('tareas_pap').select('*').order('id')
       if (!data) return
 
       const criticas = data
