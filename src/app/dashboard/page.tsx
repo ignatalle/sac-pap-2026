@@ -51,6 +51,7 @@ export default function Dashboard() {
       const { data: tareas } = await supabase
         .from('tareas_pap')
         .select('*')
+        .neq('aplica', false)
         .order('id')
 
       if (!tareas) return
